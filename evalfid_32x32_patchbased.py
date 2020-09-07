@@ -5,17 +5,17 @@ from GAN import fid
 
 
 class CGAN():
-    def __init__(self):
+    def __init__(self, load_path, num_classes=10, latent_dim=100, gen_save_step=1000):
         # Input shape
         self.img_rows = 32
         self.img_cols = 32
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.num_classes = 10
-        self.latent_dim = 100
-        self.gen_save_step = 1000
+        self.num_classes = num_classes
+        self.latent_dim = latent_dim
+        self.gen_save_step = gen_save_step
 
-        self.load_path = "cgan_32x32_patchbased"
+        self.load_path = load_path
 
         self.x_train, self.y_train = self.load_data()
 
@@ -54,7 +54,6 @@ class CGAN():
         generator = load_model(self.load_path + "/generator_" + str(new_items[0]) + ".hdf5")
 
         for generator_file in new_items:
-            # generator = load_model(self.load_path + "/generator_" + str(generator_file) + ".hdf5")
             generator.load_weights(self.load_path + "/generator_" + str(generator_file) + ".hdf5")
             all_patches = np.zeros(
                 shape=(batch_class_images * num_batches * self.num_classes, self.img_cols, self.img_rows, 1),
@@ -66,11 +65,9 @@ class CGAN():
 
                 # The labels of the digits that the generator tries to create an
                 # image representation of
-                # sampled_labels = np.random.randint(0, self.num_classes, (batch_size, 1))
                 sampled_labels = np.array([num for _ in range(batch_class_images) for num in range(self.num_classes)])
                 label_tensor = self.get_label_tensor(sampled_labels, batch_class_images * self.num_classes)
 
-                # generator = np.random.choice(self.generator_list)
                 gen_imgs = generator.predict([noise, sampled_labels, label_tensor])
                 gen_imgs = (0.5 * gen_imgs + 0.5) * 255
 
@@ -86,5 +83,5 @@ class CGAN():
 
 
 if __name__ == '__main__':
-    cgan = CGAN()
+    cgan = CGAN(load_path="cgan_32x32_patchbased", num_classes=10, latent_dim=100)
     cgan.calculate_inception(batch_class_images=1, num_batches=300)

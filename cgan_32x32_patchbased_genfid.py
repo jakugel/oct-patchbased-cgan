@@ -4,20 +4,20 @@ import numpy as np
 
 
 class CGAN():
-    def __init__(self):
+    def __init__(self, load_path, latent_dim=100, num_classes=10, num_gens=100, gen_save_step=1000, gen_range=(0, 750)):
         # Input shape
         self.img_rows = 32
         self.img_cols = 32
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.num_classes = 10
-        self.latent_dim = 100
-        self.num_gens = 100
-        self.gen_save_step = 1000
-        self.gen_range_start = 0
-        self.gen_range_end = 750
+        self.num_classes = num_classes
+        self.latent_dim = latent_dim
+        self.num_gens = num_gens                 # number of generators to sample from
+        self.gen_save_step = gen_save_step       # step size to use to increment through generator epoch numbers (equivalent to the step size for saving the generators)
+        self.gen_range_start = gen_range[0]      # epoch at start of range of generators to consider
+        self.gen_range_end = gen_range[1]        # epoch at end of range of generators to consider
 
-        self.load_path = "cgan_32x32_patchbased"
+        self.load_path = load_path
 
         fids = []
 
@@ -65,7 +65,6 @@ class CGAN():
 
                 # The labels of the digits that the generator tries to create an
                 # image representation of
-                # sampled_labels = np.random.randint(0, self.num_classes, (batch_size, 1))
                 sampled_labels = np.array([num for _ in range(batch_class_images) for num in range(self.num_classes)])
                 label_tensor = self.get_label_tensor(sampled_labels, batch_class_images * self.num_classes)
 
@@ -83,5 +82,5 @@ class CGAN():
 
 
 if __name__ == '__main__':
-    acgan = CGAN()
+    acgan = CGAN(load_path="cgan_32x32_patchbased", latent_dim=100, num_classes=10, num_gens=100, gen_save_step=1000, gen_range=(0, 750))
     acgan.generate(batch_class_images=16, num_batches=18015)

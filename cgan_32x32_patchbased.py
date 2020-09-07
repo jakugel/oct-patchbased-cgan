@@ -15,16 +15,16 @@ from GAN.Minibatch import MinibatchDiscrimination
 
 
 class CGAN():
-    def __init__(self, replay=True, replay_start_record=5000, replay_start_substitution=6000, replay_interval=100,
-                 replay_examples=1, replay_file=True, replay_proportion=0.3):
+    def __init__(self, filepath, replay=True, replay_start_record=5000, replay_start_substitution=6000, replay_interval=100,
+                 replay_examples=1, replay_file=True, replay_proportion=0.3, latent_dim=100, num_classes=10):
         # Input shape
         self.img_rows = 32
         self.img_cols = 32
         self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.num_classes = 10
-        self.latent_dim = 100
-        self.filepath = "cgan_32x32_patchbased"
+        self.num_classes = num_classes
+        self.latent_dim = latent_dim
+        self.filepath = filepath
 
         if not os.path.exists(self.filepath):
             os.makedirs(self.filepath)
@@ -64,7 +64,6 @@ class CGAN():
         label_tensor = Input(shape=(self.img_rows / 2, self.img_rows / 2,
                                     self.num_classes), dtype='float32')
         img = self.generator([noise, label, label_tensor])
-        # img = self.generator([noise, label])
 
         # For the combined model we will only train the generator
         self.discriminator.trainable = False
@@ -76,7 +75,6 @@ class CGAN():
         # The combined model  (stacked generator and discriminator)
         # Trains the generator to fool the discriminator
         self.combined = Model([noise, label, label_tensor], valid)
-        # self.combined = Model([noise, label], valid)
         self.combined.compile(loss=losses,
             optimizer=optimizer)
 
@@ -277,7 +275,6 @@ class CGAN():
 
         label_tensor = self.get_label_tensor(sampled_labels, r * c)
         gen_imgs = self.generator.predict([noise, sampled_labels, label_tensor])
-        # gen_imgs = self.generator.predict([noise, sampled_labels])
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5
 
@@ -343,6 +340,6 @@ class CGAN():
 
 
 if __name__ == '__main__':
-    cgan = CGAN(replay=True, replay_start_record=5000, replay_start_substitution=6000, replay_interval=100,
-                replay_examples=1, replay_file=True)
+    cgan = CGAN(filepath="cgan_32x32_patchbased", replay=True, replay_start_record=5000, replay_start_substitution=6000, replay_interval=100,
+                replay_examples=1, replay_file=True, latent_dim=100, num_classes=10)
     cgan.train(epochs=1000000, batch_size=64, sample_interval=100, model_interval=1000, smooth_type="onesided")
